@@ -1,0 +1,50 @@
+version: '3'
+services:
+  php:
+    build:
+      context: .
+      dockerfile: ./php/Dockerfile
+    container_name: lampset_php
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    ports:
+      - "8081:80"
+    volumes:
+      - ./app:/var/www/project
+      - ./apache2/000-default.conf:/etc/apache2/sites-available/000-default.conf
+      - php-var:/var/tmp/project/var
+    networks:
+      - lampset-network
+  mysql:
+    image: mysql:8
+    container_name: lampset_mysql
+    restart: unless-stopped
+    command:
+      - --default-authentication-plugin=mysql_native_password
+    environment:
+      - MYSQL_DATABASE=symfony
+      - MYSQL_USER=symfony
+      - MYSQL_PASSWORD=password
+      - MYSQL_RANDOM_ROOT_PASSWORD=1
+    volumes:
+      - mysql:/var/lib/mysql
+    networks:
+      - lampset-network
+  phpmyadmin:
+    image: phpmyadmin
+    restart: unless-stopped
+    container_name: lampset_phpmyadmin
+    ports:
+      - "8082:80"
+    environment:
+      - PMA_ARBITRARY=1
+    links:
+      - mysql
+    networks:
+      - lampset-network
+volumes:
+  php-var: {}
+  mysql: {}
+networks:
+  lampset-network: {}
